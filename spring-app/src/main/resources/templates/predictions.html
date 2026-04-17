@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>retailrisk.ai — Saved Predictions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --ink:#0d1117; --ink-muted:#4a5568; --ink-faint:#8a95a3;
+      --surface:#f7f8fa; --card:#ffffff; --border:#e2e6ed;
+      --accent:#1a56db; --accent-hover:#1648c0; --accent-light:#eff4ff;
+      --high:#22c55e; --high-bg:#f0fdf4; --high-text:#15803d; --high-badge:#dcfce7;
+      --mod:#f59e0b;  --mod-bg:#fffbeb;  --mod-text:#b45309;  --mod-badge:#fef3c7;
+      --low:#f43f5e;  --low-bg:#fff1f2;  --low-text:#be123c;  --low-badge:#ffe4e6;
+      --danger:#dc2626; --danger-hover:#b91c1c; --danger-light:#fef2f2;
+      --success:#16a34a; --success-bg:#f0fdf4; --success-border:#86efac;
+      --r-sm:6px; --r-md:12px; --r-lg:18px;
+      --sh-sm:0 1px 3px rgba(0,0,0,.06); --sh-md:0 4px 16px rgba(0,0,0,.08);
+      --font-d:'Instrument Serif',Georgia,serif; --font-b:'DM Sans',system-ui,sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{font-size:16px;-webkit-font-smoothing:antialiased}
+    body{font-family:var(--font-b);background:var(--surface);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+
+    /* Header */
+    header{background:var(--card);border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--sh-sm)}
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .logo-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+    .logo-icon svg{width:18px;height:18px;fill:#fff}
+    .logo-text{font-family:var(--font-d);font-size:1.25rem;color:var(--ink);letter-spacing:-.02em}
+    .logo-text span{color:var(--accent)}
+    .nav-links{display:flex;align-items:center;gap:1rem}
+    .nav-link{font-size:.82rem;font-weight:600;color:var(--ink-muted);text-decoration:none;padding:6px 14px;border-radius:8px;transition:all .2s}
+    .nav-link:hover{background:var(--accent-light);color:var(--accent)}
+    .nav-link.active{background:var(--accent-light);color:var(--accent)}
+    .nav-badge{font-size:.65rem;font-weight:700;background:var(--accent);color:#fff;padding:1px 7px;border-radius:20px;margin-left:4px}
+
+    /* Main */
+    main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:2.5rem 1.5rem 4rem}
+
+    /* Hero */
+    .hero{text-align:center;margin-bottom:2.5rem;animation:fadeUp .5s ease both}
+    .eyebrow{font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.75rem}
+    .hero h1{font-family:var(--font-d);font-size:clamp(1.8rem,3.5vw,2.5rem);line-height:1.15;letter-spacing:-.03em;margin-bottom:.75rem}
+    .hero h1 em{font-style:italic;color:var(--accent)}
+    .hero p{font-size:.95rem;color:var(--ink-muted);line-height:1.65;max-width:500px;margin:0 auto}
+
+    /* Alerts */
+    .alert-success{background:var(--success-bg);border:1.5px solid var(--success-border);border-radius:var(--r-md);padding:1rem 1.25rem;display:flex;gap:10px;align-items:center;margin-bottom:1.5rem;animation:fadeUp .3s ease both}
+    .alert-success svg{width:18px;height:18px;stroke:var(--success);fill:none;stroke-width:2;flex-shrink:0}
+    .alert-success p{font-size:.875rem;color:var(--success);line-height:1.5;font-weight:500}
+    .alert-error{background:#fff5f5;border:1.5px solid #feb2b2;border-radius:var(--r-md);padding:1rem 1.25rem;display:flex;gap:10px;align-items:center;margin-bottom:1.5rem;animation:fadeUp .3s ease both}
+    .alert-error svg{width:18px;height:18px;stroke:#e53e3e;fill:none;stroke-width:2;flex-shrink:0}
+    .alert-error p{font-size:.875rem;color:#c53030;line-height:1.5}
+
+    /* Cards */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:2rem;box-shadow:var(--sh-md);margin-bottom:1.5rem;animation:fadeUp .5s ease both}
+
+    /* Batch cards */
+    .batch-grid{display:grid;gap:1rem}
+    .batch-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.5rem;box-shadow:var(--sh-sm);transition:all .2s;animation:fadeUp .5s ease both}
+    .batch-card:hover{box-shadow:var(--sh-md);border-color:var(--accent);transform:translateY(-2px)}
+    .batch-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
+    .batch-title{font-family:var(--font-d);font-size:1.15rem;letter-spacing:-.02em}
+    .batch-meta{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+    .batch-badge{font-size:.7rem;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--accent-light);color:var(--accent);border:1px solid #c7d9ff}
+    .batch-date{font-size:.75rem;color:var(--ink-faint)}
+    .batch-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-bottom:1rem}
+    .mini-stat{text-align:center;padding:.5rem;background:var(--surface);border-radius:var(--r-sm)}
+    .mini-stat-value{font-family:var(--font-d);font-size:1.3rem;line-height:1}
+    .mini-stat-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);font-weight:600;margin-top:2px}
+    .batch-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+
+    /* Buttons */
+    .btn{padding:.5rem 1.25rem;font-family:var(--font-b);font-size:.82rem;font-weight:600;border:none;border-radius:var(--r-sm);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+    .btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .btn-primary{background:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(26,86,219,.25)}
+    .btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+    .btn-outline{background:transparent;color:var(--ink-muted);border:1px solid var(--border)}
+    .btn-outline:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .btn-danger{background:var(--danger-light);color:var(--danger);border:1px solid #fecaca}
+    .btn-danger:hover{background:var(--danger);color:#fff}
+    .btn-sm{padding:.35rem .75rem;font-size:.75rem}
+
+    /* Empty state */
+    .empty-state{text-align:center;padding:4rem 2rem;animation:fadeUp .5s ease both}
+    .empty-icon{width:72px;height:72px;background:var(--accent-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem}
+    .empty-icon svg{width:32px;height:32px;stroke:var(--accent);fill:none;stroke-width:1.5}
+    .empty-title{font-family:var(--font-d);font-size:1.5rem;margin-bottom:.5rem}
+    .empty-text{font-size:.9rem;color:var(--ink-muted);margin-bottom:1.5rem}
+
+    /* Footer */
+    footer{background:var(--card);border-top:1px solid var(--border);padding:1.25rem 2rem;text-align:center;font-size:.75rem;color:var(--ink-faint)}
+
+    /* Top actions bar */
+    .top-actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:700px){.batch-stats{grid-template-columns:repeat(2,1fr)}.batch-actions{flex-direction:column}}
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="/">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+    </div>
+    <span class="logo-text">retailrisk<span>.ai</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;vertical-align:middle;margin-right:3px"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+      Upload
+    </a>
+    <a class="nav-link active" href="/predictions">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;vertical-align:middle;margin-right:3px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Saved Predictions
+      <span class="nav-badge" th:text="${totalPredictions}" th:if="${totalPredictions > 0}">0</span>
+    </a>
+  </div>
+</header>
+
+<main>
+
+  <div class="hero">
+    <p class="eyebrow">Database Records</p>
+    <h1>Saved <em>Predictions</em></h1>
+    <p>Browse, review, edit, or delete prediction results stored in the database. Records are grouped by CSV upload batch.</p>
+  </div>
+
+  <!-- Success/Error alerts -->
+  <div th:if="${successMessage}" class="alert-success">
+    <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <p th:text="${successMessage}">Success</p>
+  </div>
+  <div th:if="${errorMessage}" class="alert-error">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <p th:text="${errorMessage}">Error</p>
+  </div>
+
+  <!-- Empty state -->
+  <div th:if="${#lists.isEmpty(batches)}" class="card empty-state">
+    <div class="empty-icon">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    </div>
+    <div class="empty-title">No Saved Predictions Yet</div>
+    <div class="empty-text">Upload a CSV on the home page to run an analysis. Results will automatically be saved here.</div>
+    <a href="/" class="btn btn-primary">
+      <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+      Upload CSV
+    </a>
+  </div>
+
+  <!-- Batch listing -->
+  <div th:if="${!#lists.isEmpty(batches)}">
+
+    <div class="top-actions">
+      <div style="font-size:.85rem;color:var(--ink-muted)">
+        <strong th:text="${totalPredictions}">0</strong> predictions across <strong th:text="${#lists.size(batches)}">0</strong> batches
+      </div>
+      <form action="/predictions/delete-all" method="post" onsubmit="return confirm('Delete ALL saved predictions? This cannot be undone.');">
+        <button type="submit" class="btn btn-danger btn-sm">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Delete All
+        </button>
+      </form>
+    </div>
+
+    <div class="batch-grid">
+      <div class="batch-card" th:each="batch : ${batches}">
+
+        <div class="batch-header">
+          <div class="batch-title" th:text="'Batch #' + ${batch.batchId}">Batch #abc12345</div>
+          <div class="batch-meta">
+            <span class="batch-badge" th:text="'📄 ' + ${batch.fileName}">file.csv</span>
+            <span class="batch-date" th:text="${#temporals.format(batch.createdAt, 'dd MMM yyyy, hh:mm a')}">14 Apr 2026</span>
+          </div>
+        </div>
+
+        <div class="batch-stats">
+          <div class="mini-stat">
+            <div class="mini-stat-value" th:text="${batch.totalCustomers}">0</div>
+            <div class="mini-stat-label">Total</div>
+          </div>
+          <div class="mini-stat" style="background:var(--high-bg)">
+            <div class="mini-stat-value" style="color:var(--high-text)" th:text="${batch.subscribers}">0</div>
+            <div class="mini-stat-label">Subscribe</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-value" style="color:var(--high-text)" th:text="${batch.highCount}">0</div>
+            <div class="mini-stat-label">High</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-value" style="color:var(--mod-text)" th:text="${batch.moderateCount}">0</div>
+            <div class="mini-stat-label">Moderate</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-value" style="color:var(--low-text)" th:text="${batch.lowCount}">0</div>
+            <div class="mini-stat-label">Low</div>
+          </div>
+        </div>
+
+        <div class="batch-actions">
+          <a th:href="@{'/predictions/batch/' + ${batch.batchId}}" class="btn btn-primary btn-sm">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            View Results
+          </a>
+          <form th:action="@{'/predictions/batch/' + ${batch.batchId} + '/delete'}" method="post" style="display:inline"
+                onsubmit="return confirm('Delete this entire batch? This cannot be undone.');">
+            <button type="submit" class="btn btn-danger btn-sm">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Delete Batch
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <strong>retailrisk.ai</strong> &nbsp;·&nbsp; LR + XGBoost Ensemble &nbsp;·&nbsp; Internal Banking Tool &nbsp;·&nbsp; Not for customer-facing use
+</footer>
+
+</body>
+</html>
