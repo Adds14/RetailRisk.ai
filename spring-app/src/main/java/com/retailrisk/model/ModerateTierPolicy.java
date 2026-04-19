@@ -56,3 +56,15 @@ public class ModerateTierPolicy extends MarketingPolicy {
              + "5. RE-EVALUATION: Re-run the propensity model after 2 weeks of "
              + "campaign exposure. Escalate to HighTierPolicy if score improves.";
     }
+     /** {@inheritDoc} */
+    @Override
+    public String getTierDisplayName() {
+        return "Moderate Likelihood";
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String getTierCssClass() {
+        return "tier-moderate";
+    }
+}
