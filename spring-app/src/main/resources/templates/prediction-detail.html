@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>retailrisk.ai — Prediction Detail</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --ink:#0d1117; --ink-muted:#4a5568; --ink-faint:#8a95a3;
+      --surface:#f7f8fa; --card:#ffffff; --border:#e2e6ed;
+      --accent:#1a56db; --accent-hover:#1648c0; --accent-light:#eff4ff;
+      --high:#22c55e; --high-bg:#f0fdf4; --high-text:#15803d; --high-badge:#dcfce7;
+      --mod:#f59e0b;  --mod-bg:#fffbeb;  --mod-text:#b45309;  --mod-badge:#fef3c7;
+      --low:#f43f5e;  --low-bg:#fff1f2;  --low-text:#be123c;  --low-badge:#ffe4e6;
+      --vhigh:#16a34a; --vlow:#9f1239;
+      --danger:#dc2626; --danger-light:#fef2f2;
+      --success:#16a34a; --success-bg:#f0fdf4; --success-border:#86efac;
+      --r-sm:6px; --r-md:12px; --r-lg:18px;
+      --sh-sm:0 1px 3px rgba(0,0,0,.06); --sh-md:0 4px 16px rgba(0,0,0,.08);
+      --font-d:'Instrument Serif',Georgia,serif; --font-b:'DM Sans',system-ui,sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{font-size:16px;-webkit-font-smoothing:antialiased}
+    body{font-family:var(--font-b);background:var(--surface);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+
+    header{background:var(--card);border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--sh-sm)}
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .logo-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+    .logo-icon svg{width:18px;height:18px;fill:#fff}
+    .logo-text{font-family:var(--font-d);font-size:1.25rem;color:var(--ink);letter-spacing:-.02em}
+    .logo-text span{color:var(--accent)}
+    .nav-links{display:flex;align-items:center;gap:1rem}
+    .nav-link{font-size:.82rem;font-weight:600;color:var(--ink-muted);text-decoration:none;padding:6px 14px;border-radius:8px;transition:all .2s}
+    .nav-link:hover{background:var(--accent-light);color:var(--accent)}
+    .nav-link.active{background:var(--accent-light);color:var(--accent)}
+    .nav-badge-count{font-size:.65rem;font-weight:700;background:var(--accent);color:#fff;padding:1px 7px;border-radius:20px;margin-left:4px}
+
+    main{flex:1;max-width:900px;width:100%;margin:0 auto;padding:2.5rem 1.5rem 4rem}
+
+    .btn{padding:.5rem 1.25rem;font-family:var(--font-b);font-size:.82rem;font-weight:600;border:none;border-radius:var(--r-sm);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+    .btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .btn-back{background:transparent;color:var(--ink-muted);border:1px solid var(--border);margin-bottom:1.5rem}
+    .btn-back:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .btn-primary{background:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(26,86,219,.25)}
+    .btn-primary:hover{background:var(--accent-hover)}
+    .btn-danger{background:var(--danger-light);color:var(--danger);border:1px solid #fecaca}
+    .btn-danger:hover{background:var(--danger);color:#fff}
+
+    .alert-success{background:var(--success-bg);border:1.5px solid var(--success-border);border-radius:var(--r-md);padding:1rem 1.25rem;display:flex;gap:10px;align-items:center;margin-bottom:1.5rem;animation:fadeUp .3s ease both}
+    .alert-success svg{width:18px;height:18px;stroke:var(--success);fill:none;stroke-width:2;flex-shrink:0}
+    .alert-success p{font-size:.875rem;color:var(--success);font-weight:500}
+
+    /* Detail card */
+    .detail-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-md);animation:fadeUp .5s ease both}
+    .detail-hero{padding:2rem 2rem 1.5rem;display:flex;align-items:center;gap:1.5rem;border-bottom:1px solid var(--border);flex-wrap:wrap}
+    .detail-rank{width:48px;height:48px;border-radius:50%;background:var(--accent-light);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:1.5rem;color:var(--accent);font-weight:700;flex-shrink:0}
+    .detail-name{font-family:var(--font-d);font-size:1.6rem;letter-spacing:-.02em}
+    .detail-sub{font-size:.85rem;color:var(--ink-muted);margin-top:2px}
+    .detail-badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-left:auto}
+    .tier-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 14px;border-radius:20px;font-size:.78rem;font-weight:700;letter-spacing:.04em}
+    .tier-very-likely  {background:#dcfce7;color:var(--vhigh)}
+    .tier-likely       {background:var(--high-badge);color:var(--high-text)}
+    .tier-moderate     {background:var(--mod-badge);color:var(--mod-text)}
+    .tier-unlikely     {background:var(--low-badge);color:var(--low-text)}
+    .tier-very-unlikely{background:#fce7f3;color:var(--vlow)}
+    .tier-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+    .sub-yes{background:#dcfce7;color:#15803d;padding:4px 14px;border-radius:99px;font-size:.78rem;font-weight:600}
+    .sub-no {background:#f1f5f9;color:var(--ink-muted);padding:4px 14px;border-radius:99px;font-size:.78rem;font-weight:600}
+
+    .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+    .detail-field{padding:1rem 2rem;border-bottom:1px solid #f0f2f5}
+    .detail-field:nth-child(odd){border-right:1px solid #f0f2f5}
+    .detail-field-label{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.25rem}
+    .detail-field-value{font-size:.95rem;font-weight:500}
+
+    .prob-big{font-family:var(--font-d);font-size:2rem;color:var(--accent);letter-spacing:-.02em}
+    .prob-bar{height:6px;border-radius:99px;background:#e8ecf0;margin-top:6px;width:100%}
+    .prob-bar-fill{height:100%;border-radius:99px;background:var(--accent)}
+
+    .detail-recommendation{padding:2rem;border-top:1px solid var(--border)}
+    .detail-recommendation h3{font-family:var(--font-d);font-size:1.1rem;margin-bottom:.75rem;letter-spacing:-.02em}
+    .rec-text{font-size:.85rem;line-height:1.8;color:var(--ink-muted);white-space:pre-line}
+
+    .detail-actions{padding:1.5rem 2rem;background:var(--surface);border-top:1px solid var(--border);display:flex;gap:.75rem;flex-wrap:wrap}
+    .detail-meta{padding:1rem 2rem;background:#fafbff;border-top:1px solid #f0f2f5;font-size:.75rem;color:var(--ink-faint);display:flex;gap:1.5rem;flex-wrap:wrap}
+
+    footer{background:var(--card);border-top:1px solid var(--border);padding:1.25rem 2rem;text-align:center;font-size:.75rem;color:var(--ink-faint)}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:600px){.detail-grid{grid-template-columns:1fr}.detail-field:nth-child(odd){border-right:none}.detail-hero{flex-direction:column;text-align:center}.detail-badges{margin-left:0;justify-content:center}}
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="/">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+    </div>
+    <span class="logo-text">retailrisk<span>.ai</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/">Upload</a>
+    <a class="nav-link active" href="/predictions">
+      Saved Predictions
+      <span class="nav-badge-count" th:text="${savedCount}" th:if="${savedCount > 0}">0</span>
+    </a>
+  </div>
+</header>
+
+<main>
+
+  <a th:href="@{'/predictions/batch/' + ${prediction.batchId}}" class="btn btn-back">
+    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Back to Batch
+  </a>
+
+  <!-- Success alert -->
+  <div th:if="${successMessage}" class="alert-success">
+    <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <p th:text="${successMessage}">Success</p>
+  </div>
+
+  <div class="detail-card">
+
+    <!-- Hero -->
+    <div class="detail-hero">
+      <div class="detail-rank" th:text="${prediction.rankPosition}">#</div>
+      <div>
+        <div class="detail-name" th:text="${prediction.name}">Customer Name</div>
+        <div class="detail-sub">
+          <span th:text="${prediction.age}">—</span> years old ·
+          <span th:text="${prediction.job}">—</span>
+        </div>
+      </div>
+      <div class="detail-badges">
+        <span th:class="'tier-badge ' + ${prediction.tierClass}">
+          <span class="tier-dot"></span>
+          <span th:text="${prediction.tier}">Tier</span>
+        </span>
+        <span th:if="${prediction.willSubscribe}" class="sub-yes">✓ Will Subscribe</span>
+        <span th:unless="${prediction.willSubscribe}" class="sub-no">✗ Won't Subscribe</span>
+      </div>
+    </div>
+
+    <!-- Fields -->
+    <div class="detail-grid">
+      <div class="detail-field">
+        <div class="detail-field-label">Final Probability</div>
+        <div class="prob-big" th:text="${prediction.finalProbPercent} + '%'">—</div>
+        <div class="prob-bar">
+          <div class="prob-bar-fill" th:style="'width:' + ${prediction.finalProbPercent} + '%'"></div>
+        </div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-field-label">Likelihood Tier</div>
+        <div class="detail-field-value" th:text="${prediction.likelihoodTier}">—</div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-field-label">Prediction</div>
+        <div class="detail-field-value" th:text="${prediction.prediction}">—</div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-field-label">Rank Position</div>
+        <div class="detail-field-value" th:text="'#' + ${prediction.rankPosition}">—</div>
+      </div>
+    </div>
+
+    <!-- Recommendation -->
+    <div class="detail-recommendation">
+      <h3>Marketing Policy Recommendation</h3>
+      <div class="rec-text" th:text="${prediction.recommendation}">...</div>
+    </div>
+
+    <!-- Actions -->
+    <div class="detail-actions">
+      <a th:href="@{'/predictions/' + ${prediction.id} + '/edit'}" class="btn btn-primary">
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit Prediction
+      </a>
+      <form th:action="@{'/predictions/' + ${prediction.id} + '/delete'}" method="post"
+            onsubmit="return confirm('Delete this prediction? This cannot be undone.');">
+        <button type="submit" class="btn btn-danger">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Delete
+        </button>
+      </form>
+    </div>
+
+    <!-- Metadata -->
+    <div class="detail-meta">
+      <span>Batch: <strong th:text="${prediction.batchId}">—</strong></span>
+      <span>File: <strong th:text="${prediction.fileName}">—</strong></span>
+      <span>Saved: <strong th:text="${#temporals.format(prediction.createdAt, 'dd MMM yyyy, hh:mm a')}">—</strong></span>
+      <span>ID: <strong th:text="${prediction.id}">—</strong></span>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <strong>retailrisk.ai</strong> &nbsp;·&nbsp; LR + XGBoost Ensemble &nbsp;·&nbsp; Internal Banking Tool &nbsp;·&nbsp; Not for customer-facing use
+</footer>
+
+</body>
+</html>

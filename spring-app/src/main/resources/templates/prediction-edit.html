@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>retailrisk.ai — Edit Prediction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --ink:#0d1117; --ink-muted:#4a5568; --ink-faint:#8a95a3;
+      --surface:#f7f8fa; --card:#ffffff; --border:#e2e6ed;
+      --accent:#1a56db; --accent-hover:#1648c0; --accent-light:#eff4ff;
+      --high-text:#15803d; --mod-text:#b45309; --low-text:#be123c;
+      --danger:#dc2626; --danger-light:#fef2f2;
+      --r-sm:6px; --r-md:12px; --r-lg:18px;
+      --sh-sm:0 1px 3px rgba(0,0,0,.06); --sh-md:0 4px 16px rgba(0,0,0,.08);
+      --font-d:'Instrument Serif',Georgia,serif; --font-b:'DM Sans',system-ui,sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{font-size:16px;-webkit-font-smoothing:antialiased}
+    body{font-family:var(--font-b);background:var(--surface);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+
+    header{background:var(--card);border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--sh-sm)}
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .logo-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+    .logo-icon svg{width:18px;height:18px;fill:#fff}
+    .logo-text{font-family:var(--font-d);font-size:1.25rem;color:var(--ink);letter-spacing:-.02em}
+    .logo-text span{color:var(--accent)}
+    .nav-links{display:flex;align-items:center;gap:1rem}
+    .nav-link{font-size:.82rem;font-weight:600;color:var(--ink-muted);text-decoration:none;padding:6px 14px;border-radius:8px;transition:all .2s}
+    .nav-link:hover{background:var(--accent-light);color:var(--accent)}
+    .nav-link.active{background:var(--accent-light);color:var(--accent)}
+    .nav-badge-count{font-size:.65rem;font-weight:700;background:var(--accent);color:#fff;padding:1px 7px;border-radius:20px;margin-left:4px}
+
+    main{flex:1;max-width:800px;width:100%;margin:0 auto;padding:2.5rem 1.5rem 4rem}
+
+    .btn{padding:.5rem 1.25rem;font-family:var(--font-b);font-size:.82rem;font-weight:600;border:none;border-radius:var(--r-sm);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+    .btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .btn-back{background:transparent;color:var(--ink-muted);border:1px solid var(--border);margin-bottom:1.5rem}
+    .btn-back:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .btn-primary{background:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(26,86,219,.25);padding:.7rem 2rem;font-size:.88rem}
+    .btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+    .btn-outline{background:transparent;color:var(--ink-muted);border:1px solid var(--border);padding:.7rem 2rem;font-size:.88rem}
+    .btn-outline:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+
+    .form-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--sh-md);overflow:hidden;animation:fadeUp .5s ease both}
+    .form-header{padding:2rem 2rem 1.5rem;border-bottom:1px solid var(--border)}
+    .form-header h1{font-family:var(--font-d);font-size:1.5rem;letter-spacing:-.02em;margin-bottom:.25rem}
+    .form-header p{font-size:.85rem;color:var(--ink-muted)}
+    .form-body{padding:2rem}
+    .form-section{margin-bottom:2rem}
+    .form-section-title{font-family:var(--font-d);font-size:1.1rem;letter-spacing:-.02em;padding-bottom:.5rem;border-bottom:1px solid var(--border);margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+    .form-section-title svg{width:16px;height:16px;fill:none;stroke:var(--accent);stroke-width:2}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+    .form-group{display:flex;flex-direction:column;gap:.35rem}
+    .form-group.full-width{grid-column:1/-1}
+    .form-group.span-2{grid-column:span 2}
+    .form-label{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
+    .form-input{padding:.6rem .75rem;border:1px solid var(--border);border-radius:var(--r-sm);font-family:var(--font-b);font-size:.85rem;color:var(--ink);background:var(--surface);transition:border-color .2s,box-shadow .2s;outline:none}
+    .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+    .form-select{padding:.6rem .75rem;border:1px solid var(--border);border-radius:var(--r-sm);font-family:var(--font-b);font-size:.85rem;color:var(--ink);background:var(--surface);cursor:pointer;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .75rem center}
+    .form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+    textarea.form-input{min-height:100px;resize:vertical;line-height:1.6}
+    .form-hint{font-size:.68rem;color:var(--ink-faint);margin-top:1px}
+    .form-readonly{background:#f0f2f5;color:var(--ink-muted);cursor:not-allowed}
+    .form-actions{padding:1.5rem 2rem;background:var(--surface);border-top:1px solid var(--border);display:flex;gap:.75rem;justify-content:flex-end}
+    .ml-notice{font-size:.75rem;color:var(--accent);background:var(--accent-light);border:1px solid #c7d9ff;padding:.5rem .75rem;border-radius:var(--r-sm);margin-bottom:1rem;display:flex;align-items:center;gap:6px}
+    .ml-notice svg{width:14px;height:14px;fill:none;stroke:var(--accent);stroke-width:2;flex-shrink:0}
+
+    footer{background:var(--card);border-top:1px solid var(--border);padding:1.25rem 2rem;text-align:center;font-size:.75rem;color:var(--ink-faint)}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:700px){.form-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:500px){.form-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="/">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+    </div>
+    <span class="logo-text">retailrisk<span>.ai</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/">Upload</a>
+    <a class="nav-link active" href="/predictions">
+      Saved Predictions
+      <span class="nav-badge-count" th:text="${savedCount}" th:if="${savedCount > 0}">0</span>
+    </a>
+  </div>
+</header>
+
+<main>
+
+  <a th:href="@{'/predictions/' + ${prediction.id}}" class="btn btn-back">
+    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Back to Detail
+  </a>
+
+  <div class="form-card">
+
+    <div class="form-header">
+      <h1>Edit Prediction</h1>
+      <p>Update customer fields below. When you save, the ML model will automatically <strong>re-run</strong> to produce updated probability and tier values.</p>
+    </div>
+
+    <form th:action="@{'/predictions/' + ${prediction.id} + '/edit'}" method="post">
+
+      <div class="form-body">
+
+        <!-- ──── Section: Customer Info ──────────────────────────── -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Customer Information
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="name">Name</label>
+              <input class="form-input" type="text" id="name" name="name"
+                     th:value="${prediction.name}" required/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="age">Age</label>
+              <input class="form-input" type="number" id="age" name="age"
+                     th:value="${prediction.age}" min="18" max="100" required/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="job">Job</label>
+              <select class="form-select" id="job" name="job">
+                <option th:each="j : ${ {'admin.','blue-collar','entrepreneur','housemaid','management','retired','self-employed','services','student','technician','unemployed','unknown'} }"
+                        th:value="${j}" th:text="${j}" th:selected="${j == prediction.job}">job</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="marital">Marital Status</label>
+              <select class="form-select" id="marital" name="marital">
+                <option th:each="m : ${ {'divorced','married','single'} }"
+                        th:value="${m}" th:text="${m}" th:selected="${m == prediction.marital}">m</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="education">Education</label>
+              <select class="form-select" id="education" name="education">
+                <option th:each="e : ${ {'primary','secondary','tertiary','unknown'} }"
+                        th:value="${e}" th:text="${e}" th:selected="${e == prediction.education}">e</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="balance">Balance</label>
+              <input class="form-input" type="number" id="balance" name="balance"
+                     th:value="${prediction.balance}"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- ──── Section: Financial Details ──────────────────────── -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            Financial Details
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="defaultCredit">Credit Default</label>
+              <select class="form-select" id="defaultCredit" name="defaultCredit">
+                <option value="no" th:selected="${prediction.defaultCredit == 'no'}">No</option>
+                <option value="yes" th:selected="${prediction.defaultCredit == 'yes'}">Yes</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="housing">Housing Loan</label>
+              <select class="form-select" id="housing" name="housing">
+                <option value="no" th:selected="${prediction.housing == 'no'}">No</option>
+                <option value="yes" th:selected="${prediction.housing == 'yes'}">Yes</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="loan">Personal Loan</label>
+              <select class="form-select" id="loan" name="loan">
+                <option value="no" th:selected="${prediction.loan == 'no'}">No</option>
+                <option value="yes" th:selected="${prediction.loan == 'yes'}">Yes</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ──── Section: Campaign Details ───────────────────────── -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Campaign Contact Details
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="contact">Contact Type</label>
+              <select class="form-select" id="contact" name="contact">
+                <option th:each="c : ${ {'cellular','telephone','unknown'} }"
+                        th:value="${c}" th:text="${c}" th:selected="${c == prediction.contact}">c</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="day">Day of Month</label>
+              <input class="form-input" type="number" id="day" name="day"
+                     th:value="${prediction.day}" min="1" max="31"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="month">Month</label>
+              <select class="form-select" id="month" name="month">
+                <option th:each="m : ${ {'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'} }"
+                        th:value="${m}" th:text="${m}" th:selected="${m == prediction.month}">m</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="duration">Duration (sec)</label>
+              <input class="form-input" type="number" id="duration" name="duration"
+                     th:value="${prediction.duration}" min="0"/>
+              <span class="form-hint">Last contact duration in seconds</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="campaign">Campaign Contacts</label>
+              <input class="form-input" type="number" id="campaign" name="campaign"
+                     th:value="${prediction.campaign}" min="1"/>
+              <span class="form-hint"># contacts during this campaign</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="pdays">Days Since Last Contact</label>
+              <input class="form-input" type="number" id="pdays" name="pdays"
+                     th:value="${prediction.pdays}"/>
+              <span class="form-hint">-1 if not previously contacted</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="previous">Previous Contacts</label>
+              <input class="form-input" type="number" id="previous" name="previous"
+                     th:value="${prediction.previous}" min="0"/>
+              <span class="form-hint"># contacts before this campaign</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="poutcome">Prev. Outcome</label>
+              <select class="form-select" id="poutcome" name="poutcome">
+                <option th:each="p : ${ {'failure','other','success','unknown'} }"
+                        th:value="${p}" th:text="${p}" th:selected="${p == prediction.poutcome}">p</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ──── Section: ML Results (Read-Only) ─────────────────── -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <svg viewBox="0 0 24 24"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+            ML Results (Read-Only — will update on save)
+          </div>
+          <div class="ml-notice">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            These fields are generated by the ML model. They will be automatically recalculated when you click Save.
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Final Probability</label>
+              <input class="form-input form-readonly" type="text"
+                     th:value="${prediction.finalProbPercent} + '%'" readonly disabled/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tier</label>
+              <input class="form-input form-readonly" type="text"
+                     th:value="${prediction.tier}" readonly disabled/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Likelihood</label>
+              <input class="form-input form-readonly" type="text"
+                     th:value="${prediction.likelihoodTier}" readonly disabled/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Verdict</label>
+              <input class="form-input form-readonly" type="text"
+                     th:value="${prediction.prediction}" readonly disabled/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Batch ID</label>
+              <input class="form-input form-readonly" type="text"
+                     th:value="${prediction.batchId}" readonly disabled/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Record ID</label>
+              <input class="form-input form-readonly" type="text"
+                     th:value="${prediction.id}" readonly disabled/>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="form-actions">
+        <a th:href="@{'/predictions/' + ${prediction.id}}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary">
+          <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save &amp; Re-Run ML Model
+        </button>
+      </div>
+    </form>
+
+  </div>
+
+</main>
+
+<footer>
+  <strong>retailrisk.ai</strong> &nbsp;·&nbsp; LR + XGBoost Ensemble &nbsp;·&nbsp; Internal Banking Tool &nbsp;·&nbsp; Not for customer-facing use
+</footer>
+
+</body>
+</html>

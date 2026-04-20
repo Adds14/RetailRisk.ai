@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>retailrisk.ai — Batch Results</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --ink:#0d1117; --ink-muted:#4a5568; --ink-faint:#8a95a3;
+      --surface:#f7f8fa; --card:#ffffff; --border:#e2e6ed;
+      --accent:#1a56db; --accent-hover:#1648c0; --accent-light:#eff4ff;
+      --high:#22c55e; --high-bg:#f0fdf4; --high-text:#15803d; --high-badge:#dcfce7;
+      --mod:#f59e0b;  --mod-bg:#fffbeb;  --mod-text:#b45309;  --mod-badge:#fef3c7;
+      --low:#f43f5e;  --low-bg:#fff1f2;  --low-text:#be123c;  --low-badge:#ffe4e6;
+      --vhigh:#16a34a; --vlow:#9f1239;
+      --danger:#dc2626; --danger-hover:#b91c1c; --danger-light:#fef2f2;
+      --success:#16a34a; --success-bg:#f0fdf4; --success-border:#86efac;
+      --r-sm:6px; --r-md:12px; --r-lg:18px;
+      --sh-sm:0 1px 3px rgba(0,0,0,.06); --sh-md:0 4px 16px rgba(0,0,0,.08);
+      --font-d:'Instrument Serif',Georgia,serif; --font-b:'DM Sans',system-ui,sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{font-size:16px;-webkit-font-smoothing:antialiased}
+    body{font-family:var(--font-b);background:var(--surface);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+
+    header{background:var(--card);border-bottom:1px solid var(--border);padding:0 2rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--sh-sm)}
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .logo-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+    .logo-icon svg{width:18px;height:18px;fill:#fff}
+    .logo-text{font-family:var(--font-d);font-size:1.25rem;color:var(--ink);letter-spacing:-.02em}
+    .logo-text span{color:var(--accent)}
+    .nav-links{display:flex;align-items:center;gap:1rem}
+    .nav-link{font-size:.82rem;font-weight:600;color:var(--ink-muted);text-decoration:none;padding:6px 14px;border-radius:8px;transition:all .2s}
+    .nav-link:hover{background:var(--accent-light);color:var(--accent)}
+    .nav-link.active{background:var(--accent-light);color:var(--accent)}
+    .nav-badge-count{font-size:.65rem;font-weight:700;background:var(--accent);color:#fff;padding:1px 7px;border-radius:20px;margin-left:4px}
+
+    main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:2.5rem 1.5rem 4rem}
+
+    /* Summary strip */
+    .summary-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.5rem;animation:fadeUp .45s ease both}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-md);padding:1.1rem 1rem;text-align:center}
+    .stat-card.subscribers{border-color:var(--high);background:var(--high-bg)}
+    .stat-value{font-family:var(--font-d);font-size:2rem;line-height:1;letter-spacing:-.03em;color:var(--ink)}
+    .stat-card.subscribers .stat-value{color:var(--high-text)}
+    .stat-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-faint);margin-top:.35rem;font-weight:600}
+
+    /* Results table */
+    .results-section{animation:fadeUp .5s ease both}
+    .results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
+    .results-title{font-family:var(--font-d);font-size:1.3rem;letter-spacing:-.02em}
+    .file-badge{font-size:.75rem;background:var(--accent-light);color:var(--accent);border:1px solid #c7d9ff;padding:3px 10px;border-radius:20px;font-weight:600}
+
+    .table-wrap{overflow-x:auto;border-radius:var(--r-md);border:1px solid var(--border);box-shadow:var(--sh-sm)}
+    table{width:100%;border-collapse:collapse;font-size:.82rem}
+    thead tr{background:#f0f4ff}
+    th{padding:.7rem 1rem;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-muted);white-space:nowrap;border-bottom:1px solid var(--border)}
+    td{padding:.75rem 1rem;border-bottom:1px solid #f0f2f5;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#fafbff}
+
+    .rank-badge{width:26px;height:26px;background:var(--surface);border:1px solid var(--border);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--ink-muted)}
+    .rank-badge.top{background:#fff7e6;border-color:#f59e0b;color:#b45309}
+
+    .prob-cell{white-space:nowrap}
+    .prob-number{font-weight:700;font-size:.88rem}
+    .prob-bar-mini{height:4px;border-radius:99px;background:#e8ecf0;margin-top:4px;width:80px}
+    .prob-bar-fill{height:100%;border-radius:99px;background:var(--accent)}
+
+    .tier-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;letter-spacing:.04em;white-space:nowrap}
+    .tier-very-likely  {background:#dcfce7;color:var(--vhigh)}
+    .tier-likely       {background:var(--high-badge);color:var(--high-text)}
+    .tier-moderate     {background:var(--mod-badge);color:var(--mod-text)}
+    .tier-unlikely     {background:var(--low-badge);color:var(--low-text)}
+    .tier-very-unlikely{background:#fce7f3;color:var(--vlow)}
+    .tier-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:currentColor}
+
+    .sub-yes{background:#dcfce7;color:#15803d;padding:2px 9px;border-radius:99px;font-size:.72rem;font-weight:600}
+    .sub-no {background:#f1f5f9;color:var(--ink-muted);padding:2px 9px;border-radius:99px;font-size:.72rem;font-weight:600}
+
+    .btn{padding:.4rem 1rem;font-family:var(--font-b);font-size:.75rem;font-weight:600;border:none;border-radius:var(--r-sm);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:5px;text-decoration:none}
+    .btn svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-primary:hover{background:var(--accent-hover)}
+    .btn-outline{background:transparent;color:var(--ink-muted);border:1px solid var(--border)}
+    .btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+    .btn-danger{background:var(--danger-light);color:var(--danger);border:1px solid #fecaca}
+    .btn-danger:hover{background:var(--danger);color:#fff}
+    .btn-back{background:transparent;color:var(--ink-muted);border:1px solid var(--border);padding:.5rem 1.25rem;font-size:.82rem;margin-bottom:1.5rem}
+    .btn-back:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+    .action-cell{white-space:nowrap;display:flex;gap:4px}
+
+    .alert-success{background:var(--success-bg);border:1.5px solid var(--success-border);border-radius:var(--r-md);padding:1rem 1.25rem;display:flex;gap:10px;align-items:center;margin-bottom:1.5rem;animation:fadeUp .3s ease both}
+    .alert-success svg{width:18px;height:18px;stroke:var(--success);fill:none;stroke-width:2;flex-shrink:0}
+    .alert-success p{font-size:.875rem;color:var(--success);line-height:1.5;font-weight:500}
+
+    footer{background:var(--card);border-top:1px solid var(--border);padding:1.25rem 2rem;text-align:center;font-size:.75rem;color:var(--ink-faint)}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:700px){.summary-grid{grid-template-columns:repeat(2,1fr)}main{padding:1.5rem 1rem 3rem}}
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="/">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+    </div>
+    <span class="logo-text">retailrisk<span>.ai</span></span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="/">Upload</a>
+    <a class="nav-link active" href="/predictions">
+      Saved Predictions
+      <span class="nav-badge-count" th:text="${savedCount}" th:if="${savedCount > 0}">0</span>
+    </a>
+  </div>
+</header>
+
+<main>
+
+  <a href="/predictions" class="btn btn-back">
+    <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Back to All Batches
+  </a>
+
+  <!-- Success alert -->
+  <div th:if="${successMessage}" class="alert-success">
+    <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <p th:text="${successMessage}">Success</p>
+  </div>
+
+  <div class="results-section">
+    <div class="summary-grid">
+      <div class="stat-card">
+        <div class="stat-value" th:text="${totalCustomers}">0</div>
+        <div class="stat-label">Total Customers</div>
+      </div>
+      <div class="stat-card subscribers">
+        <div class="stat-value" th:text="${subscribers}">0</div>
+        <div class="stat-label">Will Subscribe</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--high-text)" th:text="${highCount}">0</div>
+        <div class="stat-label">High Tier</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--mod-text)" th:text="${moderateCount}">0</div>
+        <div class="stat-label">Moderate Tier</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--low-text)" th:text="${lowCount}">0</div>
+        <div class="stat-label">Low Tier</div>
+      </div>
+    </div>
+
+    <div class="results-header">
+      <div class="results-title" th:text="'Batch #' + ${batchId} + ' — Ranked by Probability'">Batch Results</div>
+      <span class="file-badge" th:text="'📄 ' + ${fileName}">file.csv</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+        <tr>
+          <th>#</th>
+          <th>Customer</th>
+          <th>Age / Job</th>
+          <th>Final Prob</th>
+          <th>Tier</th>
+          <th>Verdict</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="p : ${predictions}">
+          <td>
+            <span th:class="${p.rankPosition <= 3} ? 'rank-badge top' : 'rank-badge'"
+                  th:text="${p.rankPosition}">1</span>
+          </td>
+          <td>
+            <strong th:text="${p.name}">Customer</strong>
+          </td>
+          <td>
+            <span th:text="${p.age}">—</span>
+            <span style="color:var(--ink-faint)"> / </span>
+            <span th:text="${p.job}">—</span>
+          </td>
+          <td class="prob-cell">
+            <span class="prob-number" th:text="${p.finalProbPercent} + '%'">—</span>
+            <div class="prob-bar-mini">
+              <div class="prob-bar-fill" th:style="'width:' + ${p.finalProbPercent} + '%'"></div>
+            </div>
+          </td>
+          <td>
+            <span th:class="'tier-badge ' + ${p.tierClass}">
+              <span class="tier-dot"></span>
+              <span th:text="${p.tier}">Tier</span>
+            </span>
+          </td>
+          <td>
+            <span th:if="${p.willSubscribe}" class="sub-yes">✓ Subscribe</span>
+            <span th:unless="${p.willSubscribe}" class="sub-no">✗ No</span>
+          </td>
+          <td>
+            <div class="action-cell">
+              <a th:href="@{'/predictions/' + ${p.id}}" class="btn btn-outline" title="View Details">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                View
+              </a>
+              <a th:href="@{'/predictions/' + ${p.id} + '/edit'}" class="btn btn-outline" title="Edit">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit
+              </a>
+              <form th:action="@{'/predictions/' + ${p.id} + '/delete'}" method="post" style="display:inline"
+                    onsubmit="return confirm('Delete this prediction?');">
+                <button type="submit" class="btn btn-danger" title="Delete">
+                  <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <strong>retailrisk.ai</strong> &nbsp;·&nbsp; LR + XGBoost Ensemble &nbsp;·&nbsp; Internal Banking Tool &nbsp;·&nbsp; Not for customer-facing use
+</footer>
+
+</body>
+</html>
