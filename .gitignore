@@ -1,0 +1,21 @@
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Spring Boot / Java
+spring-app/target/
+
+# Python
+ml-service/__pycache__/
+ml-service/.venv/
+ml-service/venv/
+ml-service/env/
+*.pyc
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Gemini
+.gemini/
